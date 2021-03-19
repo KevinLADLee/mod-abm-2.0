@@ -13,8 +13,6 @@ RUN apt-get update \
 
 RUN apt-get update \
     && apt-get install --no-install-recommends -y \
-        python3-dev \
-        python3-pip \
         libboost-all-dev \
         libxml2-dev \
         ffmpeg \
@@ -66,7 +64,11 @@ RUN if [ "x$(nproc)" = "x1" ] ; then export USE_PROC=1 ; else export USE_PROC=$(
     && cmake -S . -B build \
     && cmake --build build -j${USE_PROC}
 
-RUN pip3 --no-cache-dir install pip --upgrade -i https://mirrors.aliyun.com/pypi/simple/ --trusted-host https://mirrors.aliyun.com \
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y \
+        python3-dev \
+        python3-pip \
+    && pip3 --no-cache-dir install pip --upgrade -i https://mirrors.aliyun.com/pypi/simple/ --trusted-host https://mirrors.aliyun.com \
     && pip3 config set global.index-url https://mirrors.aliyun.com/pypi/simple/ \
     && pip3 config set install.trusted-host mirrors.aliyun.com \
     && pip3 --no-cache-dir install setuptools wheel numpy jupyter ipython jupyterlab
