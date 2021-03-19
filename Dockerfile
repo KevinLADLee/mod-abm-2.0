@@ -3,6 +3,10 @@ FROM ubuntu:focal
 ENV MAP_URL=https://raw.githubusercontent.com/KevinLADLee/KevinLADLee.github.io/master/hongkong.osm.pbf
 ENV DEBIAN_FRONTEND=noninteractive
 
+ARG MIRROR='http://mirrors.aliyun.com'
+RUN sed -i "s@http://.*archive.ubuntu.com@$MIRROR@g" /etc/apt/sources.list && \
+    sed -i "s@http://.*security.ubuntu.com@$MIRROR@g" /etc/apt/sources.list
+
 RUN apt-get update \
     && apt-get install --no-install-recommends -y build-essential sudo curl wget apt-transport-https ca-certificates locales git vim \
     && rm -rf /var/lib/apt/lists/* /tmp/*
@@ -62,11 +66,14 @@ RUN if [ "x$(nproc)" = "x1" ] ; then export USE_PROC=1 ; else export USE_PROC=$(
     && cmake -S . -B build \
     && cmake --build build -j${USE_PROC}
 
-RUN pip3 --no-cache-dir install --upgrade \
-     setuptools wheel numpy jupyter ipython jupyterlab
+RUN pip3 --no-cache-dir install pip --upgrade -i https://mirrors.aliyun.com/pypi/simple/ --trusted-host https://mirrors.aliyun.com \
+    && pip3 config set global.index-url https://mirrors.aliyun.com/pypi/simple/ \
+    && pip3 config set install.trusted-host mirrors.aliyun.com \
+    && pip3 --no-cache-dir install setuptools wheel numpy jupyter ipython jupyterlab
 
 EXPOSE 8888
 EXPOSE 8889
 
-CMD ["bash", "-c", "jupyter lab --ip=0.0.0.0 --port=8889 --no-browser --allow-root"]
+ENV SHELL=/bin/bash
 
+CMD ["bash", "-c", "jupyter lab --ip=0.0.0.0 --port=8889 --no-browser --allow-root"]
